@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IAndes — Ingeniería de Prompts</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* ─────────── TOKENS ─────────── */
+    :root {
+      --teal:        #4db8b8;
+      --teal-hover:  #3da5a5;
+      --teal-light:  #e6f7f7;
+      --teal-mid:    #b2e0e0;
+      --teal-glow:   rgba(77,184,184,.18);
+      --navy:        #2c3e50;
+      --navy-soft:   rgba(44,62,80,.07);
+      --text:        #1a1a2e;
+      --text-sec:    #6c757d;
+      --border:      #e5e7eb;
+      --bg:          #f7f9fb;
+      --white:       #ffffff;
+      --super-bg:    #e6f7f7;
+      --super-bdr:   rgba(77,184,184,.30);
+      --warn:        #e8a838;
+      --purple:      #8a6be2;
+      --sh-sm:       0 1px 4px rgba(26,26,46,.06);
+      --sh-md:       0 6px 24px rgba(26,26,46,.10);
+      --sh-teal:     0 6px 24px rgba(77,184,184,.20);
+    }
+
+    /* ─────────── RESET ─────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ─────────── HEADER ─────────── */
+    header {
+      position: sticky; top: 0; z-index: 200;
+      height: 60px;
+      background: rgba(255,255,255,.85);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 40px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-logo {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      object-fit: contain;
+      display: block;
+    }
+    .brand-text h1 { font-family: 'Lora', serif; font-size: 17px; font-weight: 600; color: var(--text); line-height: 1; }
+    .brand-text p  { font-size: 11px; color: var(--text-sec); line-height: 1; margin-top: 2px; }
+    .header-icons { margin-left: auto; display: flex; gap: 8px; }
+    .header-icons button {
+      width: 32px; height: 32px; border: none; background: transparent;
+      cursor: pointer; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-sec); font-size: 16px;
+      transition: background .2s, color .2s;
+    }
+    .header-icons button:hover { background: var(--teal-light); color: var(--teal); }
+
+    /* ─────────── HERO ─────────── */
+    .hero {
+      max-width: 900px; margin: 0 auto;
+      padding: 64px 40px 40px;
+      animation: fadeUp .55s ease both;
+    }
+    .hero-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--teal-light); border: 1px solid var(--super-bdr);
+      color: var(--teal-hover); font-size: 11px; font-weight: 600;
+      letter-spacing: .07em; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 20px; margin-bottom: 22px;
+    }
+    .hero h2 {
+      font-family: 'Lora', serif; font-size: clamp(34px,4.5vw,52px);
+      font-weight: 600; line-height: 1.15; color: var(--text); margin-bottom: 18px;
+    }
+    .hero h2 em { font-style: italic; color: var(--teal); }
+    .hero .lead {
+      font-size: 16px; color: var(--text-sec); max-width: 560px; line-height: 1.8;
+    }
+
+    /* ─────────── LAYOUT ─────────── */
+    .page { max-width: 900px; margin: 0 auto; padding: 0 40px 100px; }
+    section { margin-bottom: 52px; animation: fadeUp .5s ease both; }
+    section:nth-child(1) { animation-delay: .05s; }
+    section:nth-child(2) { animation-delay: .10s; }
+    section:nth-child(3) { animation-delay: .15s; }
+    section:nth-child(4) { animation-delay: .20s; }
+    section:nth-child(5) { animation-delay: .25s; }
+    section:nth-child(6) { animation-delay: .30s; }
+    section:nth-child(7) { animation-delay: .35s; }
+
+    /* ─────────── SECTION HEADER ─────────── */
+    .sec-head { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .sec-num {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: var(--navy); color: #fff;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    }
+    .sec-head h3 { font-family: 'Lora', serif; font-size: 21px; font-weight: 600; color: var(--text); }
+
+    /* ─────────── CARDS ─────────── */
+    .card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px 30px;
+      box-shadow: var(--sh-sm); transition: box-shadow .25s;
+    }
+    .card:hover { box-shadow: var(--sh-md); }
+    .card-teal {
+      background: var(--super-bg); border: 1px solid var(--super-bdr);
+      border-radius: 16px; padding: 28px 30px;
+      box-shadow: var(--sh-teal);
+    }
+
+    /* ─────────── CODE BLOCK ─────────── */
+    .code-block {
+      background: var(--navy); border-radius: 12px; overflow: hidden;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.75;
+      margin-top: 18px;
+    }
+    .cb-header {
+      background: rgba(255,255,255,.05); border-bottom: 1px solid rgba(255,255,255,.07);
+      padding: 10px 18px; display: flex; align-items: center; gap: 6px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .d-r { background: #ff5f56; } .d-y { background: #ffbd2e; } .d-g { background: #27c93f; }
+    .cb-label { font-size: 11px; color: rgba(255,255,255,.35); margin-left: 8px; letter-spacing: .04em; }
+    .cb-body { padding: 20px 24px; color: #cdd9e5; }
+    .cb-body .cm { color: #5f7d8f; font-style: italic; }
+    .cb-body .kw { color: #79b8ff; }
+    .cb-body .vl { color: #85e89d; }
+    .cb-body .hl { color: #ffab70; }
+    .cb-body .tl { color: var(--teal); }
+    .cb-body br { display: block; margin: 2px 0; content: ''; }
+
+    /* ─────────── ANATOMY GRID ─────────── */
+    .anatomy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .anat {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 20px 20px 24px;
+      position: relative; overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .anat:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+    .anat::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 4px; border-radius: 4px 0 0 4px;
+    }
+    .anat-teal::before  { background: var(--teal); }
+    .anat-navy::before  { background: var(--navy); }
+    .anat-warn::before  { background: var(--warn); }
+    .anat-purple::before { background: var(--purple); }
+
+    .anat-tag {
+      display: inline-block; font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 4px; margin-bottom: 8px;
+    }
+    .anat-teal   .anat-tag { background: var(--teal-light); color: var(--teal-hover); }
+    .anat-navy   .anat-tag { background: #e8ecf0; color: var(--navy); }
+    .anat-warn   .anat-tag { background: #fef3dc; color: #8a6010; }
+    .anat-purple .anat-tag { background: #f0edfc; color: #5a38b0; }
+
+    .anat h4 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+    .anat p  { font-size: 13px; color: var(--text-sec); line-height: 1.6; }
+
+    /* ─────────── ANNOTATED PROMPT ─────────── */
+    .super-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .super-lbl { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--teal-hover); }
+    .badge-ok {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--teal); color: #fff;
+      font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    }
+    .prompt-box {
+      font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.85;
+      background: rgba(255,255,255,.75); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 20px;
+    }
+    .seg { display: inline; padding: 1px 4px; border-radius: 3px; }
+    .seg-r { background: rgba(77,184,184,.18); color: #257a7a; }
+    .seg-c { background: rgba(44,62,80,.10); color: #2c3e50; }
+    .seg-t { background: rgba(138,107,226,.14); color: #4e2ea8; }
+    .seg-f { background: rgba(232,168,56,.18); color: #7a5208; }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; }
+    .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-sec); }
+    .leg-dot { width: 10px; height: 10px; border-radius: 2px; }
+    .ld-r { background: rgba(77,184,184,.5); }
+    .ld-c { background: rgba(44,62,80,.3); }
+    .ld-t { background: rgba(138,107,226,.4); }
+    .ld-f { background: rgba(232,168,56,.45); }
+
+    /* ─────────── COMPARE ─────────── */
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .cmp {
+      border-radius: 12px; padding: 20px 22px;
+    }
+    .cmp.bad  { background: #fff2f2; border: 1px solid #fbd0d0; }
+    .cmp.good { background: var(--super-bg); border: 1px solid var(--super-bdr); }
+    .cmp-lbl {
+      font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .cmp.bad  .cmp-lbl { color: #c0392b; }
+    .cmp.good .cmp-lbl { color: var(--teal-hover); }
+    .cmp p { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); line-height: 1.7; }
+
+    /* ─────────── TECHNIQUES ─────────── */
+    .techs { display: flex; flex-direction: column; gap: 11px; }
+    .tech {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 22px;
+      display: grid; grid-template-columns: 46px 1fr; gap: 16px; align-items: start;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+    }
+    .tech:hover { transform: translateX(4px); box-shadow: var(--sh-teal); border-color: var(--teal-mid); }
+    .tech-ico {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--teal-light), var(--teal-mid));
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .tech h4 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .tech p  { font-size: 13px; color: var(--text-sec); line-height: 1.6; }
+    .tbadge {
+      display: inline-block; font-size: 10px; font-weight: 600;
+      letter-spacing: .04em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 10px; margin-left: 7px; vertical-align: middle;
+      background: var(--teal); color: #fff;
+    }
+    .tbadge.adv { background: var(--navy); }
+
+    /* ─────────── LAYERS ─────────── */
+    .layers { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--sh-sm); }
+    .lyr {
+      padding: 18px 26px; display: flex; align-items: center; gap: 16px;
+      border-bottom: 1px solid rgba(0,0,0,.04);
+    }
+    .lyr:last-child { border-bottom: none; }
+    .lyr-a { background: linear-gradient(90deg, rgba(77,184,184,.11) 0%, var(--white) 60%); }
+    .lyr-b { background: linear-gradient(90deg, rgba(44,62,80,.07) 0%, var(--white) 60%); }
+    .lyr-c { background: linear-gradient(90deg, rgba(138,107,226,.08) 0%, var(--white) 60%); }
+    .lyr-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .lyr-a .lyr-dot { background: var(--teal); }
+    .lyr-b .lyr-dot { background: var(--navy); }
+    .lyr-c .lyr-dot { background: var(--purple); }
+    .lyr-name {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+      width: 58px; flex-shrink: 0;
+    }
+    .lyr-a .lyr-name { color: var(--teal); }
+    .lyr-b .lyr-name { color: var(--navy); }
+    .lyr-c .lyr-name { color: var(--purple); }
+    .lyr-desc { font-size: 13px; color: var(--text); }
+    .lyr-desc strong { font-weight: 600; }
+    .lyr-desc span { color: var(--text-sec); }
+
+    /* ─────────── TIPS ─────────── */
+    .tips-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+    .tip {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 12px; padding: 22px 18px; text-align: center;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+    }
+    .tip:hover { transform: translateY(-3px); box-shadow: var(--sh-teal); border-color: var(--teal-mid); }
+    .tip-ico { font-size: 26px; margin-bottom: 9px; }
+    .tip h4 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+    .tip p  { font-size: 12px; color: var(--text-sec); line-height: 1.6; }
+
+    /* ─────────── DIVIDER ─────────── */
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin-bottom: 52px; }
+
+    /* ─────────── FOOTER ─────────── */
+    footer {
+      text-align: center; padding: 32px 40px;
+      border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--text-sec);
+    }
+    footer strong { color: var(--teal); }
+
+    /* ─────────── ANIMATION ─────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─────────── RESPONSIVE ─────────── */
+    @media (max-width: 640px) {
+      header { padding: 0 18px; }
+      .hero, .page { padding-left: 18px; padding-right: 18px; }
+      .anatomy-grid, .compare-grid, .tips-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="brand">
+    <div class="brand-logo-wrap">
+      <img class="brand-logo" src="./assets/logo.png" alt="IAndes">
+    </div>
+    <div class="brand-text">
+      <h1>IAndes</h1>
+      <p>Ingenieria de Prompts</p>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="hero-chip">✦ Guía</div>
+  <h2>Ingeniería de<br><em>Prompts</em></h2>
+  <p class="lead">El arte y la ciencia de comunicarse con precisión con modelos de lenguaje. Aprende a construir instrucciones que obtienen resultados consistentes y de alta calidad.</p>
+</div>
+
+<!-- ═══ PAGE ═══ -->
+<div class="page">
+
+  <!-- 1 · QUÉ ES -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-num">1</div>
+      <h3>¿Qué es un prompt?</h3>
+    </div>
+    <div class="card">
+      <p style="font-size:15px;line-height:1.85;margin-bottom:18px;">
+        Un <strong>prompt</strong> es la instrucción que envías a un modelo de IA. La calidad del output depende directamente de la calidad del input — un prompt vago produce respuestas vagas; un prompt de ingeniería produce resultados predecibles y precisos.
+      </p>
+      <div class="code-block">
+        <div class="cb-header">
+          <span class="dot d-r"></span><span class="dot d-y"></span><span class="dot d-g"></span>
+          <span class="cb-label">prompt débil vs. prompt de ingeniería</span>
+        </div>
+        <div class="cb-body">
+          <div><span class="cm">// ✗ Prompt débil — resultado impredecible</span></div>
+          <div><span class="hl">"Explica la revolución industrial"</span></div>
+          <br>
+          <div><span class="cm">// ✓ Prompt de ingeniería — resultado controlado</span></div>
+          <div><span class="kw">ROL     </span><span class="vl">→ Historiador experto, análisis crítico</span></div>
+          <div><span class="kw">TAREA   </span><span class="vl">→ Revolución industrial: causas + mecanismos</span></div>
+          <div><span class="kw">NIVEL   </span><span class="vl">→ Intermedio, asume conocimiento básico</span></div>
+          <div><span class="kw">FORMATO </span><span class="vl">→ Tres secciones, terminología precisa</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · ANATOMÍA -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-num">2</div>
+      <h3>Anatomía de un prompt</h3>
+    </div>
+    <div class="anatomy-grid">
+      <div class="anat anat-teal">
+        <div class="anat-tag">Rol</div>
+        <h4>Persona / Rol</h4>
+        <p>Define quién es el modelo. "Actúa como un experto en…" establece tono, vocabulario y nivel de profundidad.</p>
+      </div>
+      <div class="anat anat-navy">
+        <div class="anat-tag">Contexto</div>
+        <h4>Contexto</h4>
+        <p>Información de fondo que el modelo necesita. Cuanto más relevante sea, más precisa será la respuesta.</p>
+      </div>
+      <div class="anat anat-warn">
+        <div class="anat-tag">Tarea</div>
+        <h4>Instrucción principal</h4>
+        <p>El verbo de acción: explicar, resumir, generar, comparar. Sé específico sobre qué quieres que produzca.</p>
+      </div>
+      <div class="anat anat-purple">
+        <div class="anat-tag">Formato</div>
+        <h4>Formato de salida</h4>
+        <p>Cómo quieres la respuesta: lista, tabla, párrafos, JSON, código. Evita ambigüedades de estructura.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · PROMPT ANOTADO -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-num">3</div>
+      <h3>Super-Prompt anotado</h3>
+    </div>
+    <div class="card-teal">
+      <div class="super-head">
+        <span class="super-lbl">Super-Prompt</span>
+        <span class="badge-ok">✨ Mejorado</span>
+      </div>
+      <div class="prompt-box">
+        <span class="seg seg-r">Actúa como un tutor paciente especializado en historia económica.</span>
+        <span> </span>
+        <span class="seg seg-c">El estudiante tiene conocimiento básico pero necesita reforzar los mecanismos subyacentes.</span>
+        <span> </span>
+        <span class="seg seg-t">Explica la Revolución Industrial desde sus causas estructurales, cubriendo mecanismos y aplicaciones prácticas.</span>
+        <span> </span>
+        <span class="seg seg-f">Usa terminología precisa, verifica comprensión con preguntas al final y adapta el nivel si el estudiante lo solicita.</span>
+      </div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot ld-r"></div> Rol</div>
+        <div class="leg-item"><div class="leg-dot ld-c"></div> Contexto</div>
+        <div class="leg-item"><div class="leg-dot ld-t"></div> Tarea</div>
+        <div class="leg-item"><div class="leg-dot ld-f"></div> Formato / Restricciones</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · ANTES Y DESPUÉS -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-num">4</div>
+      <h3>Antes y después</h3>
+    </div>
+    <div class="compare-grid">
+      <div class="cmp bad">
+        <div class="cmp-lbl">✗ Prompt débil</div>
+        <p>"Escríbeme algo sobre marketing digital"</p>
+      </div>
+      <div class="cmp good">
+        <div class="cmp-lbl">✓ Prompt optimizado</div>
+        <p>"Actúa como CMO de una startup SaaS B2B. Resume en 3 bullets las estrategias de adquisición más efectivas para 2025, priorizando canales orgánicos con bajo presupuesto."</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 5 · TÉCNICAS -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-num">5</div>
+      <h3>Técnicas esenciales</h3>
+    </div>
+    <div class="techs">
+      <div class="tech">
+        <div class="tech-ico">🎭</div>
+        <div>
+          <h4>Role Prompting <span class="tbadge">Base</span></h4>
+          <p>Asigna una persona al modelo. "Eres un abogado mercantil con 20 años de experiencia…" mejora la pertinencia y profundidad de la respuesta inmediatamente.</p>
+        </div>
+      </div>
+      <div class="tech">
+        <div class="tech-ico">🔗</div>
+        <div>
+          <h4>Chain of Thought <span class="tbadge">Base</span></h4>
+          <p>Pide al modelo que piense paso a paso. "Razona antes de responder" o "Muestra tu proceso" reduce errores en tareas complejas de razonamiento y matemáticas.</p>
+        </div>
+      </div>
+      <div class="tech">
+        <div class="tech-ico">🎯</div>
+        <div>
+          <h4>Few-Shot Prompting <span class="tbadge adv">Avanzado</span></h4>
+          <p>Incluye 2–5 ejemplos del formato esperado antes de tu pregunta. El modelo aprende el patrón y lo replica con alta precisión en la respuesta final.</p>
+        </div>
+      </div>
+      <div class="tech">
+        <div class="tech-ico">🚧</div>
+        <div>
+          <h4>Negative Prompting <span class="tbadge adv">Avanzado</span></h4>
+          <p>Especifica qué NO quieres. "Sin introducciones genéricas", "Sin mencionar X", "Evita tono académico". Los límites negativos acotan el espacio de respuestas posibles.</p>
+        </div>
+      </div>
+      <div class="tech">
+        <div class="tech-ico">🔄</div>
+        <div>
+          <h4>Iteración y Refinamiento <span class="tbadge">Base</span></h4>
+          <p>Los mejores prompts se construyen en varias rondas. Evalúa el output, identifica qué falta y añade constraints hasta lograr el resultado deseado.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · PIPELINE IANDES -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-num">6</div>
+      <h3>El pipeline de IAndes</h3>
+    </div>
+    <div class="layers">
+      <div class="lyr lyr-a">
+        <div class="lyr-dot"></div>
+        <div class="lyr-name">Layer A</div>
+        <div class="lyr-desc">
+          <strong>Captura del prompt original.</strong>
+          <span> Recibe y analiza la intención del usuario, detecta el dominio y el nivel de complejidad de la solicitud.</span>
+        </div>
+      </div>
+      <div class="lyr lyr-b">
+        <div class="lyr-dot"></div>
+        <div class="lyr-name">Layer B</div>
+        <div class="lyr-desc">
+          <strong>Enriquecimiento semántico.</strong>
+          <span> Añade contexto, rol, restricciones y formato. Transforma el prompt débil en un super-prompt estructurado.</span>
+        </div>
+      </div>
+      <div class="lyr lyr-c">
+        <div class="lyr-dot"></div>
+        <div class="lyr-name">Layer C</div>
+        <div class="lyr-desc">
+          <strong>Validación y entrega.</strong>
+          <span> Verifica coherencia, aplica overrides del usuario y entrega el prompt final optimizado al modelo.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · TIPS -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-num">7</div>
+      <h3>Tips de referencia rápida</h3>
+    </div>
+    <div class="tips-grid">
+      <div class="tip">
+        <div class="tip-ico">📐</div>
+        <h4>Sé específico</h4>
+        <p>Longitud, tono, audiencia objetivo. La vaguedad produce outputs genéricos.</p>
+      </div>
+      <div class="tip">
+        <div class="tip-ico">🧩</div>
+        <h4>Divide la tarea</h4>
+        <p>Tareas complejas funcionan mejor divididas en sub-prompts secuenciales.</p>
+      </div>
+      <div class="tip">
+        <div class="tip-ico">🔍</div>
+        <h4>Pide verificación</h4>
+        <p>"¿Entendiste correctamente?" o "Resume tu plan antes de ejecutar."</p>
+      </div>
+      <div class="tip">
+        <div class="tip-ico">📝</div>
+        <h4>Usa ejemplos</h4>
+        <p>Un ejemplo vale más que tres párrafos de descripción abstracta.</p>
+      </div>
+      <div class="tip">
+        <div class="tip-ico">🎛️</div>
+        <h4>Controla el nivel</h4>
+        <p>Indica el nivel de expertise esperado: básico, intermedio, experto.</p>
+      </div>
+      <div class="tip">
+        <div class="tip-ico">🔁</div>
+        <h4>Itera siempre</h4>
+        <p>El primer prompt rara vez es el mejor. Refina con base en el output.</p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /page -->
+
+<footer>
+  <strong>IAndes</strong> ⚡︎ Guía de Ingeniería de Prompts 
+</footer>
+
+</body>
+</html>
